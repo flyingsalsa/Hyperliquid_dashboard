@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <div class="tabs">
+            <button class="tab-button active" data-tab="tab1">Wallet History</button>
+            <button class="tab-button" data-tab="tab2">Funding Rates</button>
+        </div>
+        <div class="tab-content">
+            <div id="tab2" class="tab-pane">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2>Binance Funding Rates <span id="last-updated"
+                                style="font-size: 14px; color: #888; font-weight: normal; margin-left: 10px;"></span>
+                        </h2>
+                        <input type="text" id="search-input" placeholder="Search Symbol..." class="search-input">
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="rates-table">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Price</th>
+                                    <th>Volume (24h)</th>
+                                    <th>Binance Rate</th>
+                                    <th>Bybit Rate</th>
+                                    <th>HL Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rates-body">
+                                <tr>
+                                    <td colspan="6" class="loading-message">Loading data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="tab1" class="tab-pane active">
+                <div style="display: flex; justify-content: center; align-items: center; padding: 40px; gap: 10px;">
+                    <input type="text" id="wallet-address-input" placeholder="enter wallet address here"
+                        class="search-input" style="width: 350px;">
+                    <button id="get-history-btn" class="action-button"
+                        style="padding: 10px 20px; border-radius: 8px; border: 1px solid #ddd;">Get History</button>
+                </div>
+                <div id="json-result-container"
+                    style="padding: 20px; text-align: left; max-height: 400px; overflow-y: auto; background-color: #f4f4f4; border-radius: 8px; margin: 0 40px;">
+                    <h3 style="margin-bottom: 10px; color: #333;">Raw JSON Output:</h3>
+                    <pre id="json-output"
+                        style="white-space: pre-wrap; word-wrap: break-word; color: #333; font-family: monospace; font-size: 13px;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="funding.js"></script>
+    <script src="wallet.js"></script>
+</body>
+
+</html>

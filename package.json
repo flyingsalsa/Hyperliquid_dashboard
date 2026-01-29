@@ -1,0 +1,16 @@
+{
+  "name": "hl-dashboard",
+  "version": "1.0.0",
+  "description": "A simple dashboard with tabs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["dashboard", "tabs"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
