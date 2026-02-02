@@ -22,7 +22,7 @@ export default function FundingTable() {
             setLastUpdated(new Date().toLocaleTimeString());
             setLoading(false);
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error fetching funding rates:', error);
             setLoading(false);
         }
     };
