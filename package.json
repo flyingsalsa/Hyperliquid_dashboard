@@ -1,16 +1,15 @@
 {
-  "name": "hl-dashboard",
-  "version": "1.0.0",
-  "description": "A simple dashboard with tabs",
-  "main": "server.js",
+  "name": "hl-dashboard-next",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
-  "keywords": ["dashboard", "tabs"],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2"
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   }
 }
