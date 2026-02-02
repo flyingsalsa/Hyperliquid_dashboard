@@ -25,8 +25,16 @@ export default function Home() {
           </button>
         </div>
         <div className="tab-content">
-          {activeTab === 'tab1' && <WalletHistory />}
-          {activeTab === 'tab2' && <FundingTable />}
+          {activeTab === 'tab1' && (
+            <div className="tab-pane">
+              <WalletHistory />
+            </div>
+          )}
+          {activeTab === 'tab2' && (
+            <div className="tab-pane">
+              <FundingTable />
+            </div>
+          )}
         </div>
       </div>
     </main>
