@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import styles from './FundingTable.module.css';
 
 export default function FundingTable() {
     const [rates, setRates] = useState([]);
@@ -47,11 +48,11 @@ export default function FundingTable() {
     };
 
     const getRateClass = (val) => {
-        if (val === null || val === undefined) return 'neutral-rate';
+        if (val === null || val === undefined) return styles.neutralRate;
         const num = parseFloat(val);
-        if (num > 0) return 'positive-rate';
-        if (num < 0) return 'negative-rate';
-        return 'neutral-rate';
+        if (num > 0) return styles.positiveRate;
+        if (num < 0) return styles.negativeRate;
+        return styles.neutralRate;
     };
 
     const filteredRates = rates.filter(rate =>
@@ -59,11 +60,11 @@ export default function FundingTable() {
     );
 
     return (
-        <div className="table-container">
-            <div className="table-header">
+        <div className={styles.tableContainer}>
+            <div className={styles.tableHeader}>
                 <h2>Binance Funding Rates
                     {lastUpdated &&
-                        <span style={{ fontSize: '14px', color: '#888', fontWeight: 'normal', marginLeft: '10px' }}>
+                        <span className={styles.lastUpdated}>
                             Last updated: {lastUpdated}
                         </span>
                     }
@@ -76,8 +77,8 @@ export default function FundingTable() {
                     onChange={(e) => setSearch(e.target.value)}
                 />
             </div>
-            <div className="table-wrapper">
-                <table className="rates-table">
+            <div className={styles.tableWrapper}>
+                <table className={styles.ratesTable}>
                     <thead>
                         <tr>
                             <th>Symbol</th>
@@ -91,11 +92,11 @@ export default function FundingTable() {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="6" className="loading-message">Loading data...</td>
+                                <td colSpan="6" className={styles.loadingMessage}>Loading data...</td>
                             </tr>
                         ) : filteredRates.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="loading-message">No matches found</td>
+                                <td colSpan="6" className={styles.loadingMessage}>No matches found</td>
                             </tr>
                         ) : (
                             filteredRates.map(rate => (

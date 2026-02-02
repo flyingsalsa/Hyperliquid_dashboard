@@ -1,0 +1,109 @@
+/* Table Styles */
+.tableContainer {
+    width: 100%;
+}
+
+.tableHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fcfcfc;
+}
+
+.tableHeader h2 {
+    color: #333;
+    font-size: 24px;
+}
+
+.tableWrapper {
+    max-height: 500px;
+    overflow-y: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.ratesTable {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.ratesTable th,
+.ratesTable td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.ratesTable th {
+    background: #f8f9fa;
+    color: #666;
+    font-weight: 600;
+    font-size: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.ratesTable td {
+    color: #333;
+    font-size: 14px;
+}
+
+.ratesTable tr:hover {
+    background: #f8f9fa;
+}
+
+/* Coloring for funding rates */
+.ratesTable td.positiveRate {
+    color: #00c087;
+    /* Green */
+    font-weight: 500;
+}
+
+.ratesTable td.negativeRate {
+    color: #f75555;
+    /* Red */
+    font-weight: 500;
+}
+
+.ratesTable td.neutralRate {
+    color: #000000;
+    /* Black */
+}
+
+.loadingMessage {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+}
+
+/* Scrollbar styling */
+.tableWrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tableWrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb:hover {
+    background: #bbb;
+}
+
+.lastUpdated {
+    font-size: 14px;
+    color: #888;
+    font-weight: normal;
+    margin-left: 10px;
+    padding-right: 10px;
+}
