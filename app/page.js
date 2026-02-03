@@ -26,9 +26,7 @@ export default function Home() {
         </div>
         <div className="tab-content">
           {activeTab === 'tab1' && (
-            <div className="tab-pane">
-              <WalletHistory />
-            </div>
+            <WalletHistory />
           )}
           {activeTab === 'tab2' && (
             <div className="tab-pane">

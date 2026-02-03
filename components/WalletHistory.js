@@ -262,7 +262,7 @@ export default function WalletHistory() {
             {error && <div style={{ textAlign: 'center', color: 'red', marginBottom: '20px' }}>{error}</div>}
 
             {(hasFetched || activeOrders.length > 0 || childrenOrders.length > 0 || historyData.length > 0) && (
-                <div style={{ margin: '0 40px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+                <div style={{ margin: '0', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
                     {/* Sub-tabs header */}
                     <div style={{ display: 'flex', borderBottom: '1px solid #eee' }}>
                         <button
