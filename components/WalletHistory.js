@@ -1,15 +1,40 @@
 'use client';
 
 import { useState } from 'react';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler
+);
 
 export default function WalletHistory() {
     const [address, setAddress] = useState('');
     const [activeOrders, setActiveOrders] = useState([]);
     const [childrenOrders, setChildrenOrders] = useState([]);
     const [historyData, setHistoryData] = useState([]);
+    const [pnlData, setPnlData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [activeSubTab, setActiveSubTab] = useState('active'); // 'active', 'children', 'history'
+    const [hasFetched, setHasFetched] = useState(false);
 
     const formatToUTC8 = (timestamp) => {
         if (!timestamp) return '-';
@@ -36,6 +61,8 @@ export default function WalletHistory() {
         setActiveOrders([]);
         setChildrenOrders([]);
         setHistoryData([]);
+        setPnlData(null);
+        setHasFetched(false);
         console.log('Fetching history for:', address);
 
         try {
@@ -80,64 +107,131 @@ export default function WalletHistory() {
             setChildrenOrders(children);
             setHistoryData(rawUserFills);
 
+            // Process PnL Data (Last 60 days)
+            processPnlData(rawUserFills);
+
         } catch (err) {
             console.error('Error fetching wallet data:', err);
             setError(err.message);
         } finally {
             setLoading(false);
+            setHasFetched(true);
         }
     };
 
-    const renderTable = (data, type) => {
-        if (!data || data.length === 0) {
-            return <div style={{ padding: '20px', color: '#666' }}>No records found</div>;
+    const processPnlData = (fills) => {
+        if (!fills || fills.length === 0) {
+            setPnlData(null);
+            return;
         }
 
+        const twoMonthsAgo = Date.now() - (60 * 24 * 60 * 60 * 1000);
+
+        // Filter fills from last 2 months and sort by time ascending
+        const relevantFills = fills
+            .filter(fill => fill.time >= twoMonthsAgo)
+            .sort((a, b) => a.time - b.time);
+
+        if (relevantFills.length === 0) {
+            setPnlData(null);
+            return;
+        }
+
+        const labels = [];
+        const dataPoints = [];
+        let cumulativePnl = 0;
+
+        relevantFills.forEach(fill => {
+            const pnl = parseFloat(fill.closedPnl || 0);
+            if (pnl !== 0) { // Only track events with realized PnL
+                cumulativePnl += pnl;
+                labels.push(formatToUTC8(fill.time).split(' ')[0]); // Just date for x-axis
+                dataPoints.push(cumulativePnl);
+            }
+        });
+
+        setPnlData({
+            labels,
+            datasets: [
+                {
+                    label: 'Cumulative PnL (Last 60 Days)',
+                    data: dataPoints,
+                    borderColor: '#f0ad4e',
+                    backgroundColor: 'rgba(240, 173, 78, 0.2)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2,
+                }
+            ]
+        });
+    };
+
+    const renderTable = (data, type) => {
         return (
-            <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', fontSize: '14px' }}>
+            <div style={{ overflowX: 'auto', width: '100%' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', fontSize: '14px', tableLayout: 'fixed' }}>
                     <thead>
                         <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left', backgroundColor: '#f9f9f9' }}>
-                            <th style={{ padding: '10px' }}>Time (UTC+8)</th>
-                            <th style={{ padding: '10px' }}>Symbol</th>
-                            <th style={{ padding: '10px' }}>Side</th>
-                            <th style={{ padding: '10px' }}>Type</th>
-                            <th style={{ padding: '10px' }}>Price</th>
-                            <th style={{ padding: '10px' }}>Size</th>
-                            <th style={{ padding: '10px' }}>Value ($)</th>
-                            {type === 'history' && <th style={{ padding: '10px' }}>Fee</th>}
-                            {type === 'history' && <th style={{ padding: '10px' }}>PnL</th>}
+                            <th style={{ padding: '10px', width: '10%' }}>Time (UTC+8)</th>
+                            <th style={{ padding: '10px', width: '8%' }}>Symbol</th>
+                            <th style={{ padding: '10px', width: '6%' }}>Side</th>
+                            <th style={{ padding: '10px', width: '8%' }}>Type</th>
+                            <th style={{ padding: '10px', width: '13%' }}>Price</th>
+                            <th style={{ padding: '10px', width: '13%' }}>Size</th>
+                            <th style={{ padding: '10px', width: '8%' }}>Value ($)</th>
+                            {type === 'history' && <th style={{ padding: '10px', width: '10%' }}>Fee</th>}
+                            {type === 'history' && <th style={{ padding: '10px', width: '10%' }}>PnL</th>}
+                            {type === 'history' && <th style={{ padding: '10px', width: '14%' }}>Hash</th>}
                         </tr>
                     </thead>
                     <tbody>
-                        {data.map((item, index) => {
-                            const isHistory = type === 'history';
-                            const timestamp = isHistory ? item.time : item.timestamp;
-                            const side = item.side === 'A' ? 'Sell' : 'Buy'; // A = Ask (Sell), B = Bid (Buy)? API says side is 'A' or 'B'? Wait, searching docs 'B' is Bid, 'A' is Ask.
-                            // Actually commonly 'B' is Buy. Checking verification needed. 
-                            // userFills: side 'B' (Bid/Buy), 'A' (Ask/Sell).
-                            // Let's assume 'B' is Buy (Green), 'A' is Sell (Red).
-                            const sideColor = item.side === 'B' ? '#0ecb81' : '#f6465d';
-                            const sideText = item.side === 'B' ? 'Buy' : 'Sell';
+                        {(!data || data.length === 0) ? (
+                            <tr>
+                                <td colSpan={type === 'history' ? 10 : 7} style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                                    No records found
+                                </td>
+                            </tr>
+                        ) : (
+                            data.map((item, index) => {
+                                const isHistory = type === 'history';
+                                const timestamp = isHistory ? item.time : item.timestamp;
+                                const side = item.side === 'A' ? 'Sell' : 'Buy';
+                                const sideColor = item.side === 'B' ? '#0ecb81' : '#f6465d';
+                                const sideText = item.side === 'B' ? 'Buy' : 'Sell';
 
-                            const price = isHistory ? item.px : item.limitPx;
-                            const size = isHistory ? item.sz : item.sz;
-                            const value = (parseFloat(price) * parseFloat(size)).toFixed(2);
+                                const price = isHistory ? item.px : item.limitPx;
+                                const size = isHistory ? item.sz : item.sz;
+                                const value = (parseFloat(price) * parseFloat(size)).toFixed(2);
 
-                            return (
-                                <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ padding: '10px' }}>{formatToUTC8(timestamp)}</td>
-                                    <td style={{ padding: '10px', fontWeight: 'bold' }}>{item.coin}</td>
-                                    <td style={{ padding: '10px', color: sideColor, fontWeight: 'bold' }}>{sideText}</td>
-                                    <td style={{ padding: '10px' }}>{isHistory ? item.dir : 'Limit'}</td>
-                                    <td style={{ padding: '10px' }}>{formatNumber(price)}</td>
-                                    <td style={{ padding: '10px' }}>{formatNumber(size)}</td>
-                                    <td style={{ padding: '10px' }}>{value}</td>
-                                    {isHistory && <td style={{ padding: '10px' }}>{item.feeToken} {formatNumber(item.fee)}</td>}
-                                    {isHistory && <td style={{ padding: '10px', color: parseFloat(item.closedPnl) >= 0 ? '#0ecb81' : '#f6465d' }}>{formatNumber(item.closedPnl, 2)}</td>}
-                                </tr>
-                            );
-                        })}
+                                return (
+                                    <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
+                                        <td style={{ padding: '10px' }}>{formatToUTC8(timestamp)}</td>
+                                        <td style={{ padding: '10px', fontWeight: 'bold' }}>{item.coin}</td>
+                                        <td style={{ padding: '10px', color: sideColor, fontWeight: 'bold' }}>{sideText}</td>
+                                        <td style={{ padding: '10px' }}>{isHistory ? item.dir : 'Limit'}</td>
+                                        <td style={{ padding: '10px' }}>{formatNumber(price)}</td>
+                                        <td style={{ padding: '10px' }}>{formatNumber(size)}</td>
+                                        <td style={{ padding: '10px' }}>{value}</td>
+                                        {isHistory && <td style={{ padding: '10px' }}>{item.feeToken} {formatNumber(item.fee)}</td>}
+                                        {isHistory && <td style={{ padding: '10px', color: parseFloat(item.closedPnl) >= 0 ? '#0ecb81' : '#f6465d' }}>{formatNumber(item.closedPnl, 2)}</td>}
+                                        {isHistory && (
+                                            <td style={{ padding: '10px' }}>
+                                                {item.hash ? (
+                                                    <a
+                                                        href={`https://app.hyperliquid.xyz/explorer/tx/${item.hash}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{ color: '#f0ad4e', textDecoration: 'none' }}
+                                                    >
+                                                        {item.hash.substring(0, 4)}...{item.hash.substring(item.hash.length - 4)}
+                                                    </a>
+                                                ) : '-'}
+                                            </td>
+                                        )}
+                                    </tr>
+                                );
+                            })
+                        )}
                     </tbody>
                 </table>
             </div>
@@ -167,7 +261,7 @@ export default function WalletHistory() {
 
             {error && <div style={{ textAlign: 'center', color: 'red', marginBottom: '20px' }}>{error}</div>}
 
-            {(activeOrders.length > 0 || childrenOrders.length > 0 || historyData.length > 0) && (
+            {(hasFetched || activeOrders.length > 0 || childrenOrders.length > 0 || historyData.length > 0) && (
                 <div style={{ margin: '0 40px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
                     {/* Sub-tabs header */}
                     <div style={{ display: 'flex', borderBottom: '1px solid #eee' }}>
@@ -193,6 +287,45 @@ export default function WalletHistory() {
 
                     {/* Tab Content */}
                     <div style={{ padding: '20px' }}>
+                        {pnlData && (
+                            <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#fdfdfd', borderRadius: '8px', border: '1px solid #eee' }}>
+                                <h4 style={{ margin: '0 0 15px 0', color: '#555' }}>PnL Analysis (Last 60 Days)</h4>
+                                <div style={{ height: '300px' }}>
+                                    <Line
+                                        data={pnlData}
+                                        options={{
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: {
+                                                legend: { position: 'top' },
+                                                tooltip: {
+                                                    callbacks: {
+                                                        label: function (context) {
+                                                            let label = context.dataset.label || '';
+                                                            if (label) {
+                                                                label += ': ';
+                                                            }
+                                                            if (context.parsed.y !== null) {
+                                                                label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                                            }
+                                                            return label;
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            scales: {
+                                                x: { ticks: { maxTicksLimit: 10 } },
+                                                y: {
+                                                    ticks: { callback: (value) => '$' + value },
+                                                    grid: { color: '#eee' }
+                                                }
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         {activeSubTab === 'active' && renderTable(activeOrders, 'active')}
                         {activeSubTab === 'children' && renderTable(childrenOrders, 'active')}
                         {activeSubTab === 'history' && renderTable(historyData, 'history')}
@@ -206,4 +339,3 @@ export default function WalletHistory() {
         </div>
     );
 }
-
