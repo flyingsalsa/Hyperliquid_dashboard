@@ -156,9 +156,14 @@ export default function WalletHistory() {
                 {
                     label: 'Cumulative PnL (Last 60 Days)',
                     data: dataPoints,
-                    borderColor: '#f0ad4e',
-                    backgroundColor: 'rgba(240, 173, 78, 0.2)',
-                    fill: true,
+                    segment: {
+                        borderColor: ctx => ctx.p0.parsed.y < 0 ? '#f6465d' : '#0ecb81'
+                    },
+                    fill: {
+                        target: 'origin',
+                        above: 'rgba(14, 203, 129, 0.2)',
+                        below: 'rgba(246, 70, 93, 0.2)'
+                    },
                     tension: 0.4,
                     pointRadius: 2,
                 }
