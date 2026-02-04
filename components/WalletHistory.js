@@ -156,8 +156,28 @@ export default function WalletHistory() {
                 {
                     label: 'Cumulative PnL (Last 60 Days)',
                     data: dataPoints,
-                    segment: {
-                        borderColor: ctx => ctx.p0.parsed.y < 0 ? '#f6465d' : '#0ecb81'
+                    borderColor: (context) => {
+                        const chart = context.chart;
+                        const { ctx, chartArea, scales } = chart;
+                        if (!chartArea) return null;
+
+                        const yAxis = scales.y;
+                        const yZero = yAxis.getPixelForValue(0);
+                        const top = chartArea.top;
+                        const bottom = chartArea.bottom;
+
+                        const gradient = ctx.createLinearGradient(0, top, 0, bottom);
+
+                        let ratio = (yZero - top) / (bottom - top);
+                        if (ratio < 0) ratio = 0;
+                        if (ratio > 1) ratio = 1;
+
+                        gradient.addColorStop(0, '#0ecb81');
+                        gradient.addColorStop(ratio, '#0ecb81');
+                        gradient.addColorStop(ratio, '#f6465d');
+                        gradient.addColorStop(1, '#f6465d');
+
+                        return gradient;
                     },
                     fill: {
                         target: 'origin',
