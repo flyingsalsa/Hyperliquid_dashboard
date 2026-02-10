@@ -201,18 +201,21 @@ export default function WalletHistory() {
                             <th style={{ padding: '10px', width: '8%' }}>Symbol</th>
                             <th style={{ padding: '10px', width: '6%' }}>Side</th>
                             <th style={{ padding: '10px', width: '8%' }}>Type</th>
-                            <th style={{ padding: '10px', width: '13%' }}>Price</th>
-                            <th style={{ padding: '10px', width: '13%' }}>Size</th>
+                            <th style={{ padding: '10px', width: '10%' }}>Price</th>
+                            <th style={{ padding: '10px', width: '10%' }}>Size</th>
                             <th style={{ padding: '10px', width: '8%' }}>Value ($)</th>
-                            {type === 'history' && <th style={{ padding: '10px', width: '10%' }}>Fee</th>}
-                            {type === 'history' && <th style={{ padding: '10px', width: '10%' }}>PnL</th>}
-                            {type === 'history' && <th style={{ padding: '10px', width: '14%' }}>Hash</th>}
+                            {type === 'history' && <th style={{ padding: '10px', width: '8%' }}>Fee</th>}
+                            {type === 'history' && <th style={{ padding: '10px', width: '8%' }}>PnL</th>}
+                            <th style={{ padding: '10px', width: '8%' }}>OID</th>
+                            <th style={{ padding: '10px', width: '8%' }}>CLOID</th>
+                            <th style={{ padding: '10px', width: '8%' }}>Source</th>
+                            {type === 'history' && <th style={{ padding: '10px', width: '8%' }}>Hash</th>}
                         </tr>
                     </thead>
                     <tbody>
                         {(!data || data.length === 0) ? (
                             <tr>
-                                <td colSpan={type === 'history' ? 10 : 7} style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                                <td colSpan={type === 'history' ? 13 : 10} style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
                                     No records found
                                 </td>
                             </tr>
@@ -228,6 +231,14 @@ export default function WalletHistory() {
                                 const size = isHistory ? item.sz : item.sz;
                                 const value = (parseFloat(price) * parseFloat(size)).toFixed(2);
 
+                                // CLOID handling
+                                const cloid = item.cloid || '';
+                                const displayCloid = cloid ? `${cloid.substring(0, 4)}...${cloid.substring(cloid.length - 4)}` : '-';
+
+                                // Source identification
+                                const isBased = cloid === '0xba5ed11067f2cc02ba5ed10000ba5ed1';
+                                const source = isBased ? 'Based' : '-';
+
                                 return (
                                     <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
                                         <td style={{ padding: '10px' }}>{formatToUTC8(timestamp)}</td>
@@ -239,6 +250,9 @@ export default function WalletHistory() {
                                         <td style={{ padding: '10px' }}>{value}</td>
                                         {isHistory && <td style={{ padding: '10px' }}>{item.feeToken} {formatNumber(item.fee)}</td>}
                                         {isHistory && <td style={{ padding: '10px', color: parseFloat(item.closedPnl) >= 0 ? '#0ecb81' : '#f6465d' }}>{formatNumber(item.closedPnl, 2)}</td>}
+                                        <td style={{ padding: '10px' }} title={item.oid}>{item.oid ? item.oid.toString().substring(0, 8) + '...' : '-'}</td>
+                                        <td style={{ padding: '10px' }} title={cloid}>{displayCloid}</td>
+                                        <td style={{ padding: '10px' }}>{source}</td>
                                         {isHistory && (
                                             <td style={{ padding: '10px' }}>
                                                 {item.hash ? (
